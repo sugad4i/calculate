@@ -1,11 +1,12 @@
-<index html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス滞在率計算</title>
+  <title>エントランス集計ツール ver1.1（2024/04/27更新）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: sans-serif; padding: 20px; }
+    h1 { font-size: 22px; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #999; padding: 8px; text-align: center; }
     input { width: 60px; text-align: center; font-size: 16px; }
@@ -18,14 +19,14 @@
       min-height: 60px; 
       white-space: pre-wrap; 
       background: #f9f9f9; 
-      font-family: monospace; /* ここで等幅フォントに！ */
+      font-family: monospace; 
       font-size: 16px;
     }
   </style>
 </head>
 <body>
 
-<h2>エントランス滞在率計算</h2>
+<h1>エントランス集計ツール ver1.1（2024/04/27更新）</h1>
 
 <table>
   <thead>
@@ -129,7 +130,7 @@ function renderTable() {
     const button = document.createElement('button');
     button.textContent = '出力';
     button.onclick = () => {
-      const inSingle = String(data[i].in || 0).padStart(2, ' ');  // 2桁右寄せ
+      const inSingle = String(data[i].in || 0).padStart(2, ' ');
       const outSingle = String(data[i].out || 0).padStart(2, ' ');
       const inTotalStr = String(inTotal).padStart(3, ' ');
       const outTotalStr = String(outTotal).padStart(3, ' ');
