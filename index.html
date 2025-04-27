@@ -2,201 +2,217 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>キャッキャー集計 ver0.3.0</title>
+  <title>エントランス集計ツール ver1.1.3（2024/04/27更新）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    #header {
+    body { font-family: sans-serif; margin: 0; }
+    header {
+      background: #eee;
+      padding: 10px 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .table-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
-      background-color: #f0f0f0;
-      border-bottom: 1px solid #ccc;
+      margin: 20px;
     }
-    #header h1 {
+    .table-header h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 18px;
     }
-    #header span {
+    .table-header button {
       font-size: 14px;
-      color: #666;
+      padding: 6px 12px;
     }
-    #output {
-      margin-top: 30px;
-      white-space: pre-line;
-      font-family: monospace;
+    table { width: 100%; border-collapse: collapse; margin: 0 20px; }
+    th, td { border: 1px solid #999; padding: 8px; text-align: center; }
+    input { width: 60px; text-align: center; font-size: 16px; }
+    .fixed { background-color: #cce5ff; }
+    button { font-size: 14px; padding: 4px 8px; margin: 2px; }
+    #output-area { margin: 30px 20px 0; }
+    #output { 
+      padding: 10px; 
+      border: 1px solid #999; 
+      min-height: 60px; 
+      white-space: pre-wrap; 
+      background: #f9f9f9; 
+      font-family: monospace; 
+      font-size: 16px;
     }
-    input[type="number"] {
-      width: 40px;
-      text-align: center;
-    }
+    main { padding-bottom: 40px; }
   </style>
 </head>
 <body>
 
-<div id="header">
-  <h1>キャッキャー集計 ver0.3.0</h1>
-  <span>更新日: 2025/04/27</span>
+<header>エントランス集計ツール ver1.1.3（2024/04/27更新）</header>
+
+<main>
+
+<div class="table-header">
+  <h2>エントランス滞在率計算</h2>
+  <button onclick="resetData()">リセット</button>
 </div>
 
-<input type="file" id="csvFileInput" accept=".csv" />
+<table>
+  <thead>
+    <tr>
+      <th>時間帯</th>
+      <th>IN</th>
+      <th>OUT</th>
+      <th>IN合計</th>
+      <th>OUT合計</th>
+      <th>滞在数</th>
+      <th>滞在率</th>
+      <th>出力</th>
+    </tr>
+  </thead>
+  <tbody id="table-body">
+  </tbody>
+</table>
 
-<div id="output"></div>
+<div id="output-area">
+  <button onclick="copyOutput()">コピー</button>
+  <div id="output"></div>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+</main>
+
 <script>
-let shopData = {};
-let summaryData = {};
+// 時間帯リスト
+const timeSlots = [
+  "22:00-23:00", "23:00-24:00", "24:00-1:00",
+  "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-4:30"
+];
 
-document.getElementById('csvFileInput').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// データ保存用
+let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const text = new TextDecoder('shift-jis').decode(e.target.result);
+const tbody = document.getElementById('table-body');
+const outputDiv = document.getElementById('output');
 
-        Papa.parse(text, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                const data = results.data;
-                processData(data);
-            }
-        });
+// テーブルを作る
+function renderTable() {
+  tbody.innerHTML = '';
+  let inTotal = 0;
+  let outTotal = 0;
+
+  timeSlots.forEach((slot, i) => {
+    const row = document.createElement('tr');
+
+    const tdTime = document.createElement('td');
+    tdTime.textContent = slot;
+    row.appendChild(tdTime);
+
+    const tdIn = document.createElement('td');
+    const inputIn = document.createElement('input');
+    inputIn.type = 'number';
+    inputIn.value = data[i].in;
+    inputIn.onchange = () => {
+      data[i].in = Number(inputIn.value);
+      saveData();
+      renderTable();
     };
-    reader.readAsArrayBuffer(file);
-});
+    tdIn.appendChild(inputIn);
+    row.appendChild(tdIn);
 
-function getYesterdayDate() {
-    const today = new Date();
-    today.setDate(today.getDate() - 1);
-    const y = today.getFullYear();
-    const m = today.getMonth() + 1;
-    const d = today.getDate();
-    return `${y}/${m}/${d}`;
+    const tdOut = document.createElement('td');
+    const inputOut = document.createElement('input');
+    inputOut.type = 'number';
+    inputOut.value = data[i].out;
+    inputOut.onchange = () => {
+      data[i].out = Number(inputOut.value);
+      saveData();
+      renderTable();
+    };
+    tdOut.appendChild(inputOut);
+    row.appendChild(tdOut);
+
+    inTotal += Number(data[i].in) || 0;
+    outTotal += Number(data[i].out) || 0;
+    const stay = inTotal - outTotal;
+    const stayRate = inTotal > 0 ? Math.round((stay / inTotal) * 100) : 0;
+
+    const tdInSum = document.createElement('td');
+    tdInSum.textContent = inTotal;
+    tdInSum.classList.add('fixed');
+    row.appendChild(tdInSum);
+
+    const tdOutSum = document.createElement('td');
+    tdOutSum.textContent = outTotal;
+    tdOutSum.classList.add('fixed');
+    row.appendChild(tdOutSum);
+
+    const tdStay = document.createElement('td');
+    tdStay.textContent = stay;
+    tdStay.classList.add('fixed');
+    row.appendChild(tdStay);
+
+    const tdStayRate = document.createElement('td');
+    tdStayRate.textContent = stayRate + '%';
+    tdStayRate.classList.add('fixed');
+    row.appendChild(tdStayRate);
+
+    // 出力ボタン
+    const tdButton = document.createElement('td');
+    const button = document.createElement('button');
+    button.textContent = '出力';
+    button.onclick = () => {
+      const inSingle = String(data[i].in || 0).padStart(2, ' ');
+      const outSingle = String(data[i].out || 0).padStart(2, ' ');
+      const inTotalStr = String(inTotal).padStart(3, ' ');
+      const outTotalStr = String(outTotal).padStart(3, ' ');
+
+      const text = 
+        `${slot}\n` +
+        `in  ${inSingle}人 計${inTotalStr}人\n` +
+        `out ${outSingle}人 計${outTotalStr}人\n` +
+        `滞在率${stayRate}%`;
+
+      outputDiv.textContent = text;
+      copyText(text); // 出力と同時にコピー
+    };
+    tdButton.appendChild(button);
+    row.appendChild(tdButton);
+
+    tbody.appendChild(row);
+  });
 }
 
-function processData(data) {
-    if (!data || data.length === 0) {
-        document.getElementById('output').innerText = 'データが空です';
-        return;
-    }
-
-    let door = 0;
-    let foreignDoor = 0;
-    let doorLate = 0;
-    let foreignDoorLate = 0;
-    let total = 0;
-    let maleTotal = 0;
-    let femaleTotal = 0;
-    let foreignTotal = 0;
-    shopData = {};
-
-    let countColumn = null;
-    for (const key of Object.keys(data[0])) {
-        if (key.replace(/\s/g, '').includes('販売商品数')) {
-            countColumn = key;
-            break;
-        }
-    }
-    if (!countColumn) {
-        document.getElementById('output').innerText = '販売商品数の列が見つかりません';
-        return;
-    }
-
-    data.forEach(row => {
-        const originalItem = row['商品名']?.trim();
-        if (!originalItem) return;
-        const count = parseFloat(row[countColumn]) || 0;
-        const itemFixed = originalItem.replace(/22~1/g, '22-1');
-        const normalizedItem = itemFixed.replace(/^22-1\s*/, '');
-
-        // 総数集計（再入場以外）
-        if (!itemFixed.includes('再入場')) {
-            total += count;
-        }
-
-        // 外国人数
-        if (itemFixed.includes('G男性') || itemFixed.includes('G女性')) {
-            foreignTotal += count;
-        }
-
-        // 性別集計
-        if (itemFixed.includes('男性')) {
-            maleTotal += count;
-        }
-        if (itemFixed.includes('女性')) {
-            femaleTotal += count;
-        }
-
-        // Door集計
-        if (itemFixed.includes('G男性') || itemFixed.includes('G女性')) {
-            if (itemFixed.includes('22-1')) {
-                foreignDoorLate += count;
-            } else {
-                foreignDoor += count;
-            }
-        } else if (itemFixed.includes('男性') || itemFixed.includes('ローカルG男性') || itemFixed.includes('女性') || itemFixed.includes('ローカルG女性')) {
-            if (itemFixed.includes('22-1')) {
-                doorLate += count;
-            } else {
-                door += count;
-            }
-        }
-
-        // 店舗ごと
-        const shopMatch = normalizedItem.match(/^(.+?)(ゲスト|フリー)(男性|女性)?$/);
-        if (shopMatch) {
-            const shopName = shopMatch[1].trim();
-            const type = shopMatch[2];
-            shopData[shopName] = shopData[shopName] || { guest: 0, free: 0 };
-            if (type === 'ゲスト') {
-                shopData[shopName].guest += count;
-            }
-            // フリー人数は手打ち
-        }
-    });
-
-    summaryData = { total, foreignTotal, maleTotal, femaleTotal };
-
-    generateOutput(door, foreignDoor, doorLate, foreignDoorLate);
+// 出力テキストを手動コピー
+function copyOutput() {
+  const text = outputDiv.textContent;
+  if (!text) return;
+  copyText(text);
 }
 
-function generateOutput(door, foreignDoor, doorLate, foreignDoorLate) {
-    let html = '';
-
-    html += 'キャッキャー集計\n\n';
-    html += `${getYesterdayDate()}\n\n`;
-
-    // ここで総数・外国人数・M・W出力
-    html += `総数:${Math.round(summaryData.total)}(外国人${Math.round(summaryData.foreignTotal)}人)\n`;
-    html += `M:${Math.round(summaryData.maleTotal)} W:${Math.round(summaryData.femaleTotal)}\n\n`;
-
-    html += `Door : ${Math.round(door)}\n`;
-    html += `外国人Door: ${Math.round(foreignDoor)}\n`;
-    html += `22:00-1:00 Door: ${Math.round(doorLate)}\n`;
-    html += `22:00-1:00 外国人Door: ${Math.round(foreignDoorLate)}\n`;
-    html += `店ゲスト : [<input type="number" id="shopGuestInput" value="0" onchange="updateTotal()">]\n`;
-    html += `店フリー: [<input type="number" id="shopFreeInput" value="0" onchange="updateTotal()">]\n\n`;
-
-    for (const [shop, { guest }] of Object.entries(shopData)) {
-        const id = shop.replace(/\s+/g, '_');
-        html += `${shop}\n　<span id="total_${id}">${guest}</span>（ゲスト${Math.round(guest)} フリー[<input type="number" id="free_${id}" value="0" onchange="updateShopTotal('${id}', ${guest})">]）\n\n`;
-    }
-
-    document.getElementById('output').innerHTML = html;
+// 実際にクリップボードへコピー
+function copyText(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => alert('コピーしました！'))
+    .catch(err => alert('コピー失敗：' + err));
 }
 
-function updateTotal() {
-    const guest = parseInt(document.getElementById('shopGuestInput').value) || 0;
-    const free = parseInt(document.getElementById('shopFreeInput').value) || 0;
+// データ保存
+function saveData() {
+  localStorage.setItem('entranceData', JSON.stringify(data));
 }
 
-function updateShopTotal(id, guest) {
-    const free = parseInt(document.getElementById(`free_${id}`).value) || 0;
-    const total = guest + free;
-    document.getElementById(`total_${id}`).innerText = total;
+// データリセット
+function resetData() {
+  if (confirm('新しい日時のデータを入力しますか？')) {
+    localStorage.removeItem('entranceData');
+    data = timeSlots.map(() => ({in: '', out: ''}));
+    renderTable();
+    outputDiv.textContent = '';
+    alert('データをリセットしました！');
+  }
 }
+
+// 最初に表示
+renderTable();
 </script>
 
 </body>
