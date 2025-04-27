@@ -61,7 +61,7 @@ function renderTable() {
     const inputIn = document.createElement('input');
     inputIn.type = 'number';
     inputIn.value = data[i].in;
-    inputIn.oninput = () => {
+    inputIn.onchange = () => {
       data[i].in = Number(inputIn.value);
       saveData();
       renderTable();
@@ -73,7 +73,7 @@ function renderTable() {
     const inputOut = document.createElement('input');
     inputOut.type = 'number';
     inputOut.value = data[i].out;
-    inputOut.oninput = () => {
+    inputOut.onchange = () => {
       data[i].out = Number(inputOut.value);
       saveData();
       renderTable();
