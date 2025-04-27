@@ -2,17 +2,22 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス集計ツール ver1.1（2024/04/27更新）</title>
+  <title>エントランス集計ツール ver1.2（2024/04/27更新）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    h1 { font-size: 22px; margin-bottom: 10px; }
+    body { font-family: sans-serif; margin: 0; }
+    header {
+      background: #eee;
+      padding: 10px 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #999; padding: 8px; text-align: center; }
     input { width: 60px; text-align: center; font-size: 16px; }
     .fixed { background-color: #cce5ff; }
     button { font-size: 14px; padding: 4px 8px; margin: 2px; }
-    #output-area { margin-top: 30px; }
+    #output-area { margin-top: 30px; padding: 0 20px; }
     #output { 
       padding: 10px; 
       border: 1px solid #999; 
@@ -22,12 +27,14 @@
       font-family: monospace; 
       font-size: 16px;
     }
+    main { padding: 20px; }
   </style>
 </head>
 <body>
 
-<h1>エントランス集計ツール ver1.1（2024/04/27更新）</h1>
+<header>エントランス集計ツール ver1.1（2024/04/27更新）</header>
 
+<main>
 <table>
   <thead>
     <tr>
@@ -49,6 +56,7 @@
   <button onclick="copyOutput()">コピー</button>
   <div id="output"></div>
 </div>
+</main>
 
 <script>
 // 時間帯リスト
