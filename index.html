@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<index html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -12,7 +12,15 @@
     .fixed { background-color: #cce5ff; }
     button { font-size: 14px; padding: 4px 8px; margin: 2px; }
     #output-area { margin-top: 30px; }
-    #output { padding: 10px; border: 1px solid #999; min-height: 60px; white-space: pre-wrap; background: #f9f9f9; }
+    #output { 
+      padding: 10px; 
+      border: 1px solid #999; 
+      min-height: 60px; 
+      white-space: pre-wrap; 
+      background: #f9f9f9; 
+      font-family: monospace; /* ここで等幅フォントに！ */
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -121,10 +129,15 @@ function renderTable() {
     const button = document.createElement('button');
     button.textContent = '出力';
     button.onclick = () => {
+      const inSingle = String(data[i].in || 0).padStart(2, ' ');  // 2桁右寄せ
+      const outSingle = String(data[i].out || 0).padStart(2, ' ');
+      const inTotalStr = String(inTotal).padStart(3, ' ');
+      const outTotalStr = String(outTotal).padStart(3, ' ');
+
       outputDiv.textContent =
         `${slot}\n` +
-        `in ${data[i].in || 0}人 計${inTotal}人\n` +
-        `out${data[i].out || 0}人 計${outTotal}人\n` +
+        `in  ${inSingle}人 計${inTotalStr}人\n` +
+        `out ${outSingle}人 計${outTotalStr}人\n` +
         `滞在率${stayRate}%`;
     };
     tdButton.appendChild(button);
