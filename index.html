@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス集計ツール ver1.1.3（2024/04/27更新）</title>
-  <link rel="apple-touch-icon" href="A_2D_digital_graphic_logo_features_English_and_Jap.png">
+  <title>エントランス集計ツール ver1.1.3.2（2025/04/28更新）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" href="A_2D_digital_graphic_logo_features_English_and_Jap.png">
   <style>
     body { font-family: sans-serif; margin: 0; }
     header {
@@ -14,15 +14,25 @@
       font-weight: bold;
       text-align: center;
     }
-    .table-header {
+    .page-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 20px;
     }
-    .table-header h2 {
-      margin: 0;
-      font-size: 18px;
+    .title-left {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .title-right {
+      font-size: 12px;
+      color: #666;
+    }
+    .table-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin: 0 20px 10px;
     }
     .table-header button {
       font-size: 14px;
@@ -48,12 +58,16 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.1.3（2024/04/27更新）</header>
+<header>エントランス集計ツール ver1.1.3.2（2025/04/28更新）</header>
 
 <main>
 
+<div class="page-title">
+  <div class="title-left">エントランス滞在率計算 ver1.1.3</div>
+  <div class="title-right">更新 2025/4/28</div>
+</div>
+
 <div class="table-header">
-  <h2>エントランス滞在率計算</h2>
   <button onclick="resetData()">リセット</button>
 </div>
 
