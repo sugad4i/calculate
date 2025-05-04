@@ -57,7 +57,7 @@ const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:0
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
-const POST_URL = "https://script.google.com/macros/s/AKfycbx96eIAYfnb6u6iWmEsgkzTGUSUPMxeS2BBD1H8hpH3/exec";
+const POST_URL = "https://script.google.com/macros/s/AKfycbwKKj3vaamml5cOOScy8Do7o0n8EQy6lw9j5AeaRfoSBeURUaEH70E5LMt8tfgtmMi2nw/exec";
 
 function renderTable() {
   tbody.innerHTML = '';
