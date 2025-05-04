@@ -26,7 +26,7 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.3（2025/05/05更新）</header>
+<header>エントランス集計ツール ver1.2.3（2025/04/28更新）</header>
 
 <main>
   <div class="page-title">
@@ -108,7 +108,10 @@ function renderTable() {
         stayRate: stayRate + "%"
       }).toString();
 
-      fetch(POST_URL + "?" + query, {
+      const fullUrl = POST_URL + "?" + query;
+      console.log("送信URL:", fullUrl); // デバッグ表示
+
+      fetch(fullUrl, {
         method: "GET",
         mode: "no-cors"
       });
