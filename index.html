@@ -26,12 +26,12 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.0（2025/05/04更新）</header>
+<header>エントランス集計ツール ver1.2.0</header>
 
 <main>
   <div class="page-title">
-    <div class="title-left">エントランス滞在率計算 ver1.2.0</div>
-    <div class="title-right">更新 2025/4/28</div>
+    <div class="title-left">エントランス滞在率計算 ver1.2.1</div>
+    <div class="title-right">更新 2025/05/04</div>
   </div>
   <div class="table-header">
     <button onclick="resetData()">リセット</button>
@@ -57,7 +57,7 @@ const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:0
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
-const POST_URL = "https://script.google.com/macros/s/AKfycbxr4T3jO7fkAQNgIsxgsS-eF6i_gVh3me5R-FjoQPrnNXdh0TuaajpTvwANVOiyg7WI6Q/exec";
+const POST_URL = "https://script.google.com/macros/s/AKfycbx96eIAYfnb6u6iWmEsgkzTGUSUPMxeS2BBD1H8hpH3/exec";
 
 function renderTable() {
   tbody.innerHTML = '';
