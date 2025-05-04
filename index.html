@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス集計ツール ver1.2.0</title>
+  <title>エントランス集計ツール ver1.2.1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="apple-touch-icon" href="A_digital_2D_graphic_design_features_bold,_capital.png">
   <style>
@@ -26,12 +26,12 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.1</header>
+<header>エントランス集計ツール ver1.2.1（2025/04/28更新）</header>
 
 <main>
   <div class="page-title">
     <div class="title-left">エントランス滞在率計算 ver1.2.1</div>
-    <div class="title-right">更新 2025/05/04</div>
+    <div class="title-right">更新 2025/4/28</div>
   </div>
   <div class="table-header">
     <button onclick="resetData()">リセット</button>
@@ -57,7 +57,7 @@ const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:0
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
-const POST_URL = "https://script.google.com/macros/s/AKfycbwKKj3vaamml5cOOScy8Do7o0n8EQy6lw9j5AeaRfoSBeURUaEH70E5LMt8tfgtmMi2nw/exec";
+const POST_URL = "https://script.google.com/macros/s/AKfycbyI2X2YU0D339JOYa7ODns-D5U05cz_HzP39kZuj04y70EJPGk6Ssc3VEYt_B-ecssEaw/exec";
 
 function renderTable() {
   tbody.innerHTML = '';
@@ -97,19 +97,20 @@ function renderTable() {
       const text = `${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
+
+      const form = new FormData();
+      form.append("time", slot);
+      form.append("inCount", data[i].in);
+      form.append("outCount", data[i].out);
+      form.append("inTotal", inTotal);
+      form.append("outTotal", outTotal);
+      form.append("stay", stay);
+      form.append("stayRate", stayRate + "%");
+
       fetch(POST_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          time: slot,
-          inCount: data[i].in,
-          outCount: data[i].out,
-          inTotal: inTotal,
-          outTotal: outTotal,
-          stay: stay,
-          stayRate: stayRate + "%"
-        })
+        method: "POST",
+        mode: "no-cors",
+        body: form
       });
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
