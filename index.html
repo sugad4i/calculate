@@ -67,7 +67,6 @@ const outputDiv = document.getElementById('output');
 const dateInput = document.getElementById('date-input');
 const POST_URL = "https://script.google.com/macros/s/AKfycbwuKn3rEapqFwU4bPS4cHeLcgzGPH-6M0PjwKcjKf-30Zzbgjoxw6FNuUZgDo5rZJOqzw/exec";
 
-// デフォルトの日付セット
 function setDefaultDate() {
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -111,7 +110,8 @@ function renderTable() {
       const outSingle = String(data[i].out || 0).padStart(2, ' ');
       const inTotalStr = String(inTotal).padStart(3, ' ');
       const outTotalStr = String(outTotal).padStart(3, ' ');
-      const text = `${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
+      const formattedDate = dateInput.value.replace(/-/g, '/');
+      const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
 
