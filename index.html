@@ -26,7 +26,7 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.3（2025/04/28更新）</header>
+<header>エントランス集計ツール ver1.2.3（2025/05/05更新）</header>
 
 <main>
   <div class="page-title">
@@ -61,6 +61,7 @@ const POST_URL = "https://script.google.com/macros/s/AKfycbwuKn3rEapqFwU4bPS4cHe
 
 function renderTable() {
   tbody.innerHTML = '';
+  let inTotal = 0, outTotal = 0;
 
   timeSlots.forEach((slot, i) => {
     const row = document.createElement('tr');
@@ -76,21 +77,41 @@ function renderTable() {
     inputOut.onchange = () => { data[i].out = Number(inputOut.value); saveData(); renderTable(); };
     tdOut.appendChild(inputOut); row.appendChild(tdOut);
 
-    const tdInSum = document.createElement('td'); tdInSum.textContent = ''; row.appendChild(tdInSum);
-    const tdOutSum = document.createElement('td'); tdOutSum.textContent = ''; row.appendChild(tdOutSum);
-    const tdStay = document.createElement('td'); tdStay.textContent = ''; row.appendChild(tdStay);
-    const tdStayRate = document.createElement('td'); tdStayRate.textContent = ''; row.appendChild(tdStayRate);
+    inTotal += Number(data[i].in) || 0;
+    outTotal += Number(data[i].out) || 0;
+    const stay = inTotal - outTotal;
+    const stayRate = inTotal > 0 ? Math.round((stay / inTotal) * 100) : 0;
+
+    const tdInSum = document.createElement('td'); tdInSum.textContent = inTotal; tdInSum.classList.add('fixed'); row.appendChild(tdInSum);
+    const tdOutSum = document.createElement('td'); tdOutSum.textContent = outTotal; tdOutSum.classList.add('fixed'); row.appendChild(tdOutSum);
+    const tdStay = document.createElement('td'); tdStay.textContent = stay; tdStay.classList.add('fixed'); row.appendChild(tdStay);
+    const tdStayRate = document.createElement('td'); tdStayRate.textContent = stayRate + '%'; tdStayRate.classList.add('fixed'); row.appendChild(tdStayRate);
 
     const tdButton = document.createElement('td');
     const button = document.createElement('button'); button.textContent = '出力';
     button.onclick = () => {
-      const query = new URLSearchParams({ msg: "hello" }).toString();
+      const inSingle = String(data[i].in || 0).padStart(2, ' ');
+      const outSingle = String(data[i].out || 0).padStart(2, ' ');
+      const inTotalStr = String(inTotal).padStart(3, ' ');
+      const outTotalStr = String(outTotal).padStart(3, ' ');
+      const text = `${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
+      outputDiv.textContent = text;
+      copyText(text);
+
+      const query = new URLSearchParams({
+        time: slot,
+        inCount: data[i].in,
+        outCount: data[i].out,
+        inTotal: inTotal,
+        outTotal: outTotal,
+        stay: stay,
+        stayRate: stayRate + "%"
+      }).toString();
+
       fetch(POST_URL + "?" + query, {
         method: "GET",
         mode: "no-cors"
       });
-      outputDiv.textContent = `"hello" を送信しました`;
-      copyText("hello");
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
     tbody.appendChild(row);
