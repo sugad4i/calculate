@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス集計ツール ver1.2.1</title>
+  <title>エントランス集計ツール ver1.2.3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="apple-touch-icon" href="A_digital_2D_graphic_design_features_bold,_capital.png">
   <style>
@@ -26,11 +26,11 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.1（2025/04/28更新）</header>
+<header>エントランス集計ツール ver1.2.3（2025/04/28更新）</header>
 
 <main>
   <div class="page-title">
-    <div class="title-left">エントランス滞在率計算 ver1.2.1</div>
+    <div class="title-left">エントランス滞在率計算 ver1.2.3</div>
     <div class="title-right">更新 2025/4/28</div>
   </div>
   <div class="table-header">
@@ -57,7 +57,7 @@ const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:0
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
-const POST_URL = "https://script.google.com/macros/s/AKfycbyI2X2YU0D339JOYa7ODns-D5U05cz_HzP39kZuj04y70EJPGk6Ssc3VEYt_B-ecssEaw/exec";
+const POST_URL = "https://script.google.com/macros/s/AKfycbwuKn3rEapqFwU4bPS4cHeLcgzGPH-6M0PjwKcjKf-30Zzbgjoxw6FNuUZgDo5rZJOqzw/exec";
 
 function renderTable() {
   tbody.innerHTML = '';
@@ -98,19 +98,19 @@ function renderTable() {
       outputDiv.textContent = text;
       copyText(text);
 
-      const form = new FormData();
-      form.append("time", slot);
-      form.append("inCount", data[i].in);
-      form.append("outCount", data[i].out);
-      form.append("inTotal", inTotal);
-      form.append("outTotal", outTotal);
-      form.append("stay", stay);
-      form.append("stayRate", stayRate + "%");
+      const query = new URLSearchParams({
+        time: slot,
+        inCount: data[i].in,
+        outCount: data[i].out,
+        inTotal: inTotal,
+        outTotal: outTotal,
+        stay: stay,
+        stayRate: stayRate + "%"
+      }).toString();
 
-      fetch(POST_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: form
+      fetch(POST_URL + "?" + query, {
+        method: "GET",
+        mode: "no-cors"
       });
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
@@ -149,3 +149,4 @@ renderTable();
 
 </body>
 </html>
+
