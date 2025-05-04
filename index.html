@@ -2,248 +2,117 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エントランス集計ツール ver1.2</title>
+  <title>エントランス集計ツール ver1.2.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="apple-touch-icon" href="A_2D_digital_graphic_logo_features_English_and_Jap.png">
+  <link rel="apple-touch-icon" href="A_digital_2D_graphic_design_features_bold,_capital.png">
   <style>
-    body { 
-      font-family: 'Noto Sans JP', sans-serif;
-      margin: 0; 
-      background-color: #fafafa;
-    }
-    header {
-      background: #eee;
-      padding: 10px 20px;
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
-    .page-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 20px;
-    }
-    .title-left {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .title-right {
-      font-size: 12px;
-      color: #666;
-    }
-    .table-header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin: 0 20px 10px;
-    }
-    .table-header button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .table-header button:hover {
-      background-color: #0056b3;
-    }
-    table { 
-      width: 95%; 
-      border-collapse: collapse; 
-      margin: 0 auto; 
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      background-color: white;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    thead {
-      background-color: #f2f2f2;
-    }
-    th, td { 
-      border: 1px solid #ccc; 
-      padding: 10px; 
-      text-align: center; 
-    }
-    input { 
-      width: 60px; 
-      text-align: center; 
-      font-size: 16px; 
-      padding: 4px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .fixed { 
-      background-color: #e9f5ff; 
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #output-area { 
-      margin: 30px 20px 0; 
-      text-align: center;
-    }
-    #output { 
-      margin-top: 10px;
-      padding: 10px; 
-      border: 1px solid #ccc; 
-      min-height: 80px; 
-      white-space: pre-wrap; 
-      background: #f9f9f9; 
-      font-family: monospace; 
-      font-size: 16px;
-      border-radius: 6px;
-      text-align: left; /* ←★ここ追加で左詰めにした！ */
-    }
+    body { font-family: 'Noto Sans JP', sans-serif; margin: 0; background-color: #fafafa; }
+    header { background: #eee; padding: 10px 20px; font-size: 20px; font-weight: bold; text-align: center; }
+    .page-title { display: flex; justify-content: space-between; align-items: center; margin: 20px; }
+    .title-left { font-size: 20px; font-weight: bold; }
+    .title-right { font-size: 12px; color: #666; }
+    .table-header { display: flex; justify-content: flex-end; align-items: center; margin: 0 20px 10px; }
+    .table-header button, button { background-color: #007bff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    table { width: 95%; border-collapse: collapse; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background-color: white; border-radius: 8px; overflow: hidden; }
+    thead { background-color: #f2f2f2; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    input { width: 60px; text-align: center; font-size: 16px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
+    .fixed { background-color: #e9f5ff; }
+    #output-area { margin: 30px 20px 0; text-align: center; }
+    #output { margin-top: 10px; padding: 10px; border: 1px solid #ccc; min-height: 80px; white-space: pre-wrap; background: #f9f9f9; font-family: monospace; font-size: 16px; border-radius: 6px; text-align: left; }
     main { padding-bottom: 40px; }
   </style>
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2</header>
+<header>エントランス集計ツール ver1.2.0（2025/04/28更新）</header>
 
 <main>
+  <div class="page-title">
+    <div class="title-left">エントランス滞在率計算 ver1.2.0</div>
+    <div class="title-right">更新 2025/4/28</div>
+  </div>
+  <div class="table-header">
+    <button onclick="resetData()">リセット</button>
+  </div>
 
-<div class="page-title">
-  <div class="title-left">エントランス滞在率計算 ver1.2</div>
-  <div class="title-right">更新 2025/4/28</div>
-</div>
+  <table>
+    <thead>
+      <tr>
+        <th>時間帯</th><th>IN</th><th>OUT</th><th>IN合計</th><th>OUT合計</th><th>滞在数</th><th>滞在率</th><th>出力</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
 
-<div class="table-header">
-  <button onclick="resetData()">リセット</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>時間帯</th>
-      <th>IN</th>
-      <th>OUT</th>
-      <th>IN合計</th>
-      <th>OUT合計</th>
-      <th>滞在数</th>
-      <th>滞在率</th>
-      <th>出力</th>
-    </tr>
-  </thead>
-  <tbody id="table-body">
-  </tbody>
-</table>
-
-<div id="output-area">
-  <button onclick="copyOutput()">コピー</button>
-  <div id="output"></div>
-</div>
-
+  <div id="output-area">
+    <button onclick="copyOutput()">コピー</button>
+    <div id="output"></div>
+  </div>
 </main>
 
 <script>
-// 時間帯リスト
-const timeSlots = [
-  "22:00-23:00", "23:00-24:00", "24:00-1:00",
-  "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-4:30"
-];
-
-// データ保存用
+const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-4:30"];
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
-
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
+const POST_URL = "https://script.google.com/macros/s/AKfycbxr4T3jO7fkAQNgIsxgsS-eF6i_gVh3me5R-FjoQPrnNXdh0TuaajpTvwANVOiyg7WI6Q/exec";
 
-// テーブルを作る
 function renderTable() {
   tbody.innerHTML = '';
-  let inTotal = 0;
-  let outTotal = 0;
+  let inTotal = 0, outTotal = 0;
 
   timeSlots.forEach((slot, i) => {
     const row = document.createElement('tr');
-
-    const tdTime = document.createElement('td');
-    tdTime.textContent = slot;
-    row.appendChild(tdTime);
+    const tdTime = document.createElement('td'); tdTime.textContent = slot; row.appendChild(tdTime);
 
     const tdIn = document.createElement('td');
-    const inputIn = document.createElement('input');
-    inputIn.type = 'number';
-    inputIn.value = data[i].in;
-    inputIn.onchange = () => {
-      data[i].in = Number(inputIn.value);
-      saveData();
-      renderTable();
-    };
-    tdIn.appendChild(inputIn);
-    row.appendChild(tdIn);
+    const inputIn = document.createElement('input'); inputIn.type = 'number'; inputIn.value = data[i].in;
+    inputIn.onchange = () => { data[i].in = Number(inputIn.value); saveData(); renderTable(); };
+    tdIn.appendChild(inputIn); row.appendChild(tdIn);
 
     const tdOut = document.createElement('td');
-    const inputOut = document.createElement('input');
-    inputOut.type = 'number';
-    inputOut.value = data[i].out;
-    inputOut.onchange = () => {
-      data[i].out = Number(inputOut.value);
-      saveData();
-      renderTable();
-    };
-    tdOut.appendChild(inputOut);
-    row.appendChild(tdOut);
+    const inputOut = document.createElement('input'); inputOut.type = 'number'; inputOut.value = data[i].out;
+    inputOut.onchange = () => { data[i].out = Number(inputOut.value); saveData(); renderTable(); };
+    tdOut.appendChild(inputOut); row.appendChild(tdOut);
 
     inTotal += Number(data[i].in) || 0;
     outTotal += Number(data[i].out) || 0;
     const stay = inTotal - outTotal;
     const stayRate = inTotal > 0 ? Math.round((stay / inTotal) * 100) : 0;
 
-    const tdInSum = document.createElement('td');
-    tdInSum.textContent = inTotal;
-    tdInSum.classList.add('fixed');
-    row.appendChild(tdInSum);
-
-    const tdOutSum = document.createElement('td');
-    tdOutSum.textContent = outTotal;
-    tdOutSum.classList.add('fixed');
-    row.appendChild(tdOutSum);
-
-    const tdStay = document.createElement('td');
-    tdStay.textContent = stay;
-    tdStay.classList.add('fixed');
-    row.appendChild(tdStay);
-
-    const tdStayRate = document.createElement('td');
-    tdStayRate.textContent = stayRate + '%';
-    tdStayRate.classList.add('fixed');
-    row.appendChild(tdStayRate);
+    const tdInSum = document.createElement('td'); tdInSum.textContent = inTotal; tdInSum.classList.add('fixed'); row.appendChild(tdInSum);
+    const tdOutSum = document.createElement('td'); tdOutSum.textContent = outTotal; tdOutSum.classList.add('fixed'); row.appendChild(tdOutSum);
+    const tdStay = document.createElement('td'); tdStay.textContent = stay; tdStay.classList.add('fixed'); row.appendChild(tdStay);
+    const tdStayRate = document.createElement('td'); tdStayRate.textContent = stayRate + '%'; tdStayRate.classList.add('fixed'); row.appendChild(tdStayRate);
 
     const tdButton = document.createElement('td');
-    const button = document.createElement('button');
-    button.textContent = '出力';
+    const button = document.createElement('button'); button.textContent = '出力';
     button.onclick = () => {
       const inSingle = String(data[i].in || 0).padStart(2, ' ');
       const outSingle = String(data[i].out || 0).padStart(2, ' ');
       const inTotalStr = String(inTotal).padStart(3, ' ');
       const outTotalStr = String(outTotal).padStart(3, ' ');
-
-      const text = 
-        `${slot}\n` +
-        `in  ${inSingle}人 計${inTotalStr}人\n` +
-        `out ${outSingle}人 計${outTotalStr}人\n` +
-        `滞在率${stayRate}%`;
-
+      const text = `${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
+      fetch(POST_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          time: slot,
+          inCount: data[i].in,
+          outCount: data[i].out,
+          inTotal: inTotal,
+          outTotal: outTotal,
+          stay: stay,
+          stayRate: stayRate + "%"
+        })
+      });
     };
-    tdButton.appendChild(button);
-    row.appendChild(tdButton);
-
+    tdButton.appendChild(button); row.appendChild(tdButton);
     tbody.appendChild(row);
   });
 }
