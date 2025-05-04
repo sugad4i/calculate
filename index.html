@@ -11,13 +11,15 @@
     .page-title { display: flex; justify-content: space-between; align-items: center; margin: 20px; }
     .title-left { font-size: 20px; font-weight: bold; }
     .title-right { font-size: 12px; color: #666; }
+    .date-container { text-align: center; margin-bottom: 10px; }
+    .date-container input { font-size: 16px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; }
     .table-header { display: flex; justify-content: flex-end; align-items: center; margin: 0 20px 10px; }
     .table-header button, button { background-color: #007bff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 14px; cursor: pointer; }
     button:hover { background-color: #0056b3; }
     table { width: 95%; border-collapse: collapse; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background-color: white; border-radius: 8px; overflow: hidden; }
     thead { background-color: #f2f2f2; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    input { width: 60px; text-align: center; font-size: 16px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
+    input[type='number'] { width: 60px; text-align: center; font-size: 16px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
     .fixed { background-color: #e9f5ff; }
     #output-area { margin: 30px 20px 0; text-align: center; }
     #output { margin-top: 10px; padding: 10px; border: 1px solid #ccc; min-height: 80px; white-space: pre-wrap; background: #f9f9f9; font-family: monospace; font-size: 16px; border-radius: 6px; text-align: left; }
@@ -33,6 +35,11 @@
     <div class="title-left">エントランス滞在率計算 ver1.2.3</div>
     <div class="title-right">更新 2025/4/28</div>
   </div>
+
+  <div class="date-container">
+    日付：<input type="date" id="date-input">
+  </div>
+
   <div class="table-header">
     <button onclick="resetData()">リセット</button>
   </div>
@@ -57,7 +64,17 @@ const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:0
 let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() => ({in: '', out: ''}));
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
+const dateInput = document.getElementById('date-input');
 const POST_URL = "https://script.google.com/macros/s/AKfycbwuKn3rEapqFwU4bPS4cHeLcgzGPH-6M0PjwKcjKf-30Zzbgjoxw6FNuUZgDo5rZJOqzw/exec";
+
+// デフォルトの日付セット
+function setDefaultDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  dateInput.value = `${yyyy}-${mm}-${dd}`;
+}
 
 function renderTable() {
   tbody.innerHTML = '';
@@ -99,6 +116,7 @@ function renderTable() {
       copyText(text);
 
       const query = new URLSearchParams({
+        date: dateInput.value,
         time: slot,
         inCount: data[i].in,
         outCount: data[i].out,
@@ -109,7 +127,7 @@ function renderTable() {
       }).toString();
 
       const fullUrl = POST_URL + "?" + query;
-      console.log("送信URL:", fullUrl); // デバッグ表示
+      console.log("送信URL:", fullUrl);
 
       fetch(fullUrl, {
         method: "GET",
@@ -141,12 +159,14 @@ function resetData() {
   if (confirm('新しい日時のデータを入力しますか？')) {
     localStorage.removeItem('entranceData');
     data = timeSlots.map(() => ({in: '', out: ''}));
+    setDefaultDate();
     renderTable();
     outputDiv.textContent = '';
     alert('データをリセットしました！');
   }
 }
 
+setDefaultDate();
 renderTable();
 </script>
 
