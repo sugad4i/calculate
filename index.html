@@ -32,24 +32,25 @@
 
   <script>
     const firebaseConfig = {
-    apiKey: "AIzaSyDSZohtnPXem6m7f6A63KjXTQMUUFNk0Cg",
-    authDomain: "ghost-entrance.firebaseapp.com",
-    databaseURL: "https://ghost-entrance-default-rtdb.firebaseio.com",
-    projectId: "ghost-entrance",
-    storageBucket: "ghost-entrance.firebasestorage.app",
-    messagingSenderId: "977704976997",
-    appId: "1:977704976997:web:e61ef8bdc61babc2757c8c"
+      apiKey: "AIzaSyDSZohtnPXem6m7f6A63KjXTQMUUFNk0Cg",
+      authDomain: "ghost-entrance.firebaseapp.com",
+      databaseURL: "https://ghost-entrance-default-rtdb.firebaseio.com",
+      projectId: "ghost-entrance",
+      storageBucket: "ghost-entrance.firebasestorage.app",
+      messagingSenderId: "977704976997",
+      appId: "1:977704976997:web:e61ef8bdc61babc2757c8c"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
   </script>
 </head>
+<body>
+
   <div style="margin:40px 20px;">
     <h3>IN合計数の推移グラフ</h3>
     <canvas id="inTotalChart" width="400" height="200"></canvas>
     <button onclick="showInTotalHistory()">クラウド履歴グラフ表示</button>
   </div>
-<body>
 
 <header>エントランス集計ツール ver1.2.4</header>
 
@@ -91,7 +92,6 @@ let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() 
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
 const dateInput = document.getElementById('date-input');
-const POST_URL = "https://script.google.com/macros/s/AKfycbyEueoey3NJ7IijDM7GdA5LRsye6T_0ZakU5JKtabFapNOCR0SVb6UD1ncp9CmDDRVgVg/exec";
 
 function setDefaultDate() {
   const today = new Date();
@@ -140,6 +140,13 @@ function renderTable() {
       const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
+
+      // 追加: その時間までのデータをクラウド保存
+      const today = dateInput.value;
+      const partialData = data.slice(0, i + 1).map(d => ({ in: d.in, out: d.out }));
+      db.ref('entrance/' + today + '/partial_' + i).set(partialData)
+        .then(() => console.log('クラウドに部分データを保存しました'))
+        .catch(e => console.error('部分保存失敗: ' + e));
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
     tbody.appendChild(row);
@@ -196,6 +203,7 @@ function loadFromCloud() {
     }
   });
 }
+
 function showInTotalHistory() {
   db.ref('entrance').get().then(snapshot => {
     if (!snapshot.exists()) {
