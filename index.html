@@ -24,6 +24,9 @@
     #output-area { margin: 30px 20px 0; text-align: center; }
     #output { margin-top: 10px; padding: 10px; border: 1px solid #ccc; min-height: 80px; white-space: pre-wrap; background: #f9f9f9; font-family: monospace; font-size: 16px; border-radius: 6px; text-align: left; }
     main { padding-bottom: 40px; }
+    .graph-area { margin: 40px 20px 20px 20px; text-align: center; }
+    .graph-controls { margin-bottom: 10px; }
+    .graph-controls label { margin: 0 8px; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -45,12 +48,6 @@
   </script>
 </head>
 <body>
-
-  <div style="margin:40px 20px;">
-    <h3>IN合計数の推移グラフ</h3>
-    <canvas id="inTotalChart" width="400" height="200"></canvas>
-    <button onclick="showInTotalHistory()">クラウド履歴グラフ表示</button>
-  </div>
 
 <header>エントランス集計ツール ver1.2.4</header>
 
@@ -85,6 +82,17 @@
     <div id="output"></div>
   </div>
 </main>
+
+<!-- グラフ表示エリアを一番下に配置 -->
+<div class="graph-area">
+  <h3>IN合計数の推移グラフ</h3>
+  <div class="graph-controls">
+    <label>開始日: <input type="date" id="graph-start"></label>
+    <label>終了日: <input type="date" id="graph-end"></label>
+    <button onclick="showInTotalHistory()">グラフ表示</button>
+  </div>
+  <canvas id="inTotalChart" width="400" height="200"></canvas>
+</div>
 
 <script>
 const timeSlots = ["22:00-23:00", "23:00-24:00", "24:00-1:00", "1:00-2:00", "2:00-3:00", "3:00-4:00", "4:00-4:30"];
@@ -204,6 +212,7 @@ function loadFromCloud() {
   });
 }
 
+// IN合計グラフ表示（期間指定対応）
 function showInTotalHistory() {
   db.ref('entrance').get().then(snapshot => {
     if (!snapshot.exists()) {
@@ -211,17 +220,34 @@ function showInTotalHistory() {
       return;
     }
     const allData = snapshot.val();
-    const labels = [];
-    const inTotals = [];
+    let labels = [];
+    let inTotals = [];
     Object.keys(allData).sort().forEach(date => {
       const dayData = allData[date];
-      // dayDataは配列（各時間帯のin/out）なので合計を計算
       const inTotal = Array.isArray(dayData)
         ? dayData.reduce((sum, d) => sum + (Number(d.in) || 0), 0)
         : 0;
       labels.push(date);
       inTotals.push(inTotal);
     });
+
+    // 期間指定
+    const start = document.getElementById('graph-start').value;
+    const end = document.getElementById('graph-end').value;
+    if (start) {
+      const idx = labels.findIndex(d => d >= start);
+      if (idx > 0) {
+        labels = labels.slice(idx);
+        inTotals = inTotals.slice(idx);
+      }
+    }
+    if (end) {
+      const idx = labels.findIndex(d => d > end);
+      if (idx >= 0) {
+        labels = labels.slice(0, idx);
+        inTotals = inTotals.slice(0, idx);
+      }
+    }
 
     const ctx = document.getElementById('inTotalChart').getContext('2d');
     if (window.inTotalChartObj) window.inTotalChartObj.destroy();
