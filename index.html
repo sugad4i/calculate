@@ -25,6 +25,22 @@
     #output { margin-top: 10px; padding: 10px; border: 1px solid #ccc; min-height: 80px; white-space: pre-wrap; background: #f9f9f9; font-family: monospace; font-size: 16px; border-radius: 6px; text-align: left; }
     main { padding-bottom: 40px; }
   </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+    apiKey: "AIzaSyDSZohtnPXem6m7f6A63KjXTQMUUFNk0Cg",
+    authDomain: "ghost-entrance.firebaseapp.com",
+    databaseURL: "https://ghost-entrance-default-rtdb.firebaseio.com",
+    projectId: "ghost-entrance",
+    storageBucket: "ghost-entrance.firebasestorage.app",
+    messagingSenderId: "977704976997",
+    appId: "1:977704976997:web:e61ef8bdc61babc2757c8c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
 </head>
 <body>
 
@@ -43,6 +59,8 @@
 
   <div class="table-header">
     <button onclick="resetData()">リセット</button>
+    <button onclick="saveToCloud()">クラウド保存</button>
+    <button onclick="loadFromCloud()">クラウド読込</button>
   </div>
 
   <table>
@@ -115,25 +133,6 @@ function renderTable() {
       const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
-
-      const query = new URLSearchParams({
-        date: dateInput.value,
-        time: slot,
-        inCount: data[i].in,
-        outCount: data[i].out,
-        inTotal: inTotal,
-        outTotal: outTotal,
-        stay: stay,
-        stayRate: stayRate + "%"
-      }).toString();
-
-      const fullUrl = POST_URL + "?" + query;
-      console.log("送信URL:", fullUrl);
-
-      fetch(fullUrl, {
-        method: "GET",
-        mode: "no-cors"
-      });
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
     tbody.appendChild(row);
@@ -145,78 +144,6 @@ function copyOutput() {
   if (!text) return;
   copyText(text);
 }
-
-
-function renderTable() {
-  tbody.innerHTML = '';
-  let inTotal = 0, outTotal = 0;
-
-  timeSlots.forEach((slot, i) => {
-    const row = document.createElement('tr');
-    const tdTime = document.createElement('td'); tdTime.textContent = slot; row.appendChild(tdTime);
-
-    const tdIn = document.createElement('td');
-    const inputIn = document.createElement('input'); inputIn.type = 'number'; inputIn.value = data[i].in;
-    inputIn.onchange = () => { data[i].in = Number(inputIn.value); saveData(); renderTable(); };
-    tdIn.appendChild(inputIn); row.appendChild(tdIn);
-
-    const tdOut = document.createElement('td');
-    const inputOut = document.createElement('input'); inputOut.type = 'number'; inputOut.value = data[i].out;
-    inputOut.onchange = () => { data[i].out = Number(inputOut.value); saveData(); renderTable(); };
-    tdOut.appendChild(inputOut); row.appendChild(tdOut);
-
-    inTotal += Number(data[i].in) || 0;
-    outTotal += Number(data[i].out) || 0;
-    const stay = inTotal - outTotal;
-    const stayRate = inTotal > 0 ? Math.round((stay / inTotal) * 100) : 0;
-
-    const tdInSum = document.createElement('td'); tdInSum.textContent = inTotal; tdInSum.classList.add('fixed'); row.appendChild(tdInSum);
-    const tdOutSum = document.createElement('td'); tdOutSum.textContent = outTotal; tdOutSum.classList.add('fixed'); row.appendChild(tdOutSum);
-    const tdStay = document.createElement('td'); tdStay.textContent = stay; tdStay.classList.add('fixed'); row.appendChild(tdStay);
-    const tdStayRate = document.createElement('td'); tdStayRate.textContent = stayRate + '%'; tdStayRate.classList.add('fixed'); row.appendChild(tdStayRate);
-
-    const tdButton = document.createElement('td');
-    const button = document.createElement('button'); button.textContent = '出力';
-    button.onclick = () => {
-      const formattedDate = dateInput.value.replace(/-/g, '/');
-      let cumulativeInTotal = 0, cumulativeOutTotal = 0;
-
-      // その時間帯までのデータを送信
-      for (let j = 0; j <= i; j++) {
-        const inCount = Number(data[j].in) || 0;
-        const outCount = Number(data[j].out) || 0;
-        cumulativeInTotal += inCount;
-        cumulativeOutTotal += outCount;
-        const stay = cumulativeInTotal - cumulativeOutTotal;
-        const stayRate = cumulativeInTotal > 0 ? Math.round((stay / cumulativeInTotal) * 100) : 0;
-
-        const query = new URLSearchParams({
-          date: dateInput.value,
-          time: timeSlots[j],
-          inCount: inCount,
-          outCount: outCount,
-          inTotal: cumulativeInTotal,
-          outTotal: cumulativeOutTotal,
-          stay: stay,
-          stayRate: stayRate + "%"
-        }).toString();
-
-        const fullUrl = POST_URL + "?" + query;
-        console.log("送信URL:", fullUrl);
-
-        fetch(fullUrl, {
-          method: "GET",
-          mode: "no-cors"
-        });
-      }
-
-      alert(`データを送信しました！（${slot}まで）`);
-    };
-    tdButton.appendChild(button); row.appendChild(tdButton);
-    tbody.appendChild(row);
-  });
-}
-
 
 function copyText(text) {
   navigator.clipboard.writeText(text)
@@ -241,6 +168,28 @@ function resetData() {
 
 setDefaultDate();
 renderTable();
+
+function saveToCloud() {
+  const today = dateInput.value;
+  db.ref('entrance/' + today).set(data)
+    .then(() => alert('クラウドに保存しました！'))
+    .catch(e => alert('保存失敗: ' + e));
+}
+
+function loadFromCloud() {
+  const today = dateInput.value;
+  db.ref('entrance/' + today).get().then(snapshot => {
+    if (snapshot.exists()) {
+      data = snapshot.val();
+      saveData();
+      renderTable();
+      alert('クラウドから読み込みました！');
+    } else {
+      alert('データがありません');
+    }
+  });
+}
+
 </script>
 
 </body>
