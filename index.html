@@ -28,6 +28,8 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     const firebaseConfig = {
     apiKey: "AIzaSyDSZohtnPXem6m7f6A63KjXTQMUUFNk0Cg",
@@ -42,6 +44,11 @@
     const db = firebase.database();
   </script>
 </head>
+  <div style="margin:40px 20px;">
+    <h3>IN合計数の推移グラフ</h3>
+    <canvas id="inTotalChart" width="400" height="200"></canvas>
+    <button onclick="showInTotalHistory()">クラウド履歴グラフ表示</button>
+  </div>
 <body>
 
 <header>エントランス集計ツール ver1.2.4</header>
@@ -189,7 +196,42 @@ function loadFromCloud() {
     }
   });
 }
+function showInTotalHistory() {
+  db.ref('entrance').get().then(snapshot => {
+    if (!snapshot.exists()) {
+      alert('履歴がありません');
+      return;
+    }
+    const allData = snapshot.val();
+    const labels = [];
+    const inTotals = [];
+    Object.keys(allData).sort().forEach(date => {
+      const dayData = allData[date];
+      // dayDataは配列（各時間帯のin/out）なので合計を計算
+      const inTotal = Array.isArray(dayData)
+        ? dayData.reduce((sum, d) => sum + (Number(d.in) || 0), 0)
+        : 0;
+      labels.push(date);
+      inTotals.push(inTotal);
+    });
 
+    const ctx = document.getElementById('inTotalChart').getContext('2d');
+    if (window.inTotalChartObj) window.inTotalChartObj.destroy();
+    window.inTotalChartObj = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'IN合計', data: inTotals, borderColor: 'blue', fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+  });
+}
 </script>
 
 </body>
