@@ -28,7 +28,7 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.2.4（2025/05/05更新）</header>
+<header>エントランス集計ツール ver1.2.4</header>
 
 <main>
   <div class="page-title">
@@ -65,7 +65,7 @@ let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() 
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
 const dateInput = document.getElementById('date-input');
-const POST_URL = "https://script.google.com/macros/s/AKfycbyjY7mwblRayzliSuSLI4Z-Kfa3sxL_QZmG4EyOIZNTXVGOWukg5yqmrGFlJDHXZIujtQ/exec";
+const POST_URL = "https://script.google.com/macros/s/AKfycbyEueoey3NJ7IijDM7GdA5LRsye6T_0ZakU5JKtabFapNOCR0SVb6UD1ncp9CmDDRVgVg/exec";
 
 function setDefaultDate() {
   const today = new Date();
@@ -144,6 +144,78 @@ function copyOutput() {
   if (!text) return;
   copyText(text);
 }
+
+
+function renderTable() {
+  tbody.innerHTML = '';
+  let inTotal = 0, outTotal = 0;
+
+  timeSlots.forEach((slot, i) => {
+    const row = document.createElement('tr');
+    const tdTime = document.createElement('td'); tdTime.textContent = slot; row.appendChild(tdTime);
+
+    const tdIn = document.createElement('td');
+    const inputIn = document.createElement('input'); inputIn.type = 'number'; inputIn.value = data[i].in;
+    inputIn.onchange = () => { data[i].in = Number(inputIn.value); saveData(); renderTable(); };
+    tdIn.appendChild(inputIn); row.appendChild(tdIn);
+
+    const tdOut = document.createElement('td');
+    const inputOut = document.createElement('input'); inputOut.type = 'number'; inputOut.value = data[i].out;
+    inputOut.onchange = () => { data[i].out = Number(inputOut.value); saveData(); renderTable(); };
+    tdOut.appendChild(inputOut); row.appendChild(tdOut);
+
+    inTotal += Number(data[i].in) || 0;
+    outTotal += Number(data[i].out) || 0;
+    const stay = inTotal - outTotal;
+    const stayRate = inTotal > 0 ? Math.round((stay / inTotal) * 100) : 0;
+
+    const tdInSum = document.createElement('td'); tdInSum.textContent = inTotal; tdInSum.classList.add('fixed'); row.appendChild(tdInSum);
+    const tdOutSum = document.createElement('td'); tdOutSum.textContent = outTotal; tdOutSum.classList.add('fixed'); row.appendChild(tdOutSum);
+    const tdStay = document.createElement('td'); tdStay.textContent = stay; tdStay.classList.add('fixed'); row.appendChild(tdStay);
+    const tdStayRate = document.createElement('td'); tdStayRate.textContent = stayRate + '%'; tdStayRate.classList.add('fixed'); row.appendChild(tdStayRate);
+
+    const tdButton = document.createElement('td');
+    const button = document.createElement('button'); button.textContent = '出力';
+    button.onclick = () => {
+      const formattedDate = dateInput.value.replace(/-/g, '/');
+      let cumulativeInTotal = 0, cumulativeOutTotal = 0;
+
+      // その時間帯までのデータを送信
+      for (let j = 0; j <= i; j++) {
+        const inCount = Number(data[j].in) || 0;
+        const outCount = Number(data[j].out) || 0;
+        cumulativeInTotal += inCount;
+        cumulativeOutTotal += outCount;
+        const stay = cumulativeInTotal - cumulativeOutTotal;
+        const stayRate = cumulativeInTotal > 0 ? Math.round((stay / cumulativeInTotal) * 100) : 0;
+
+        const query = new URLSearchParams({
+          date: dateInput.value,
+          time: timeSlots[j],
+          inCount: inCount,
+          outCount: outCount,
+          inTotal: cumulativeInTotal,
+          outTotal: cumulativeOutTotal,
+          stay: stay,
+          stayRate: stayRate + "%"
+        }).toString();
+
+        const fullUrl = POST_URL + "?" + query;
+        console.log("送信URL:", fullUrl);
+
+        fetch(fullUrl, {
+          method: "GET",
+          mode: "no-cors"
+        });
+      }
+
+      alert(`データを送信しました！（${slot}まで）`);
+    };
+    tdButton.appendChild(button); row.appendChild(tdButton);
+    tbody.appendChild(row);
+  });
+}
+
 
 function copyText(text) {
   navigator.clipboard.writeText(text)
