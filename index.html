@@ -64,8 +64,6 @@
 
   <div class="table-header">
     <button onclick="resetData()">リセット</button>
-    <button onclick="saveToCloud()">クラウド保存</button>
-    <button onclick="loadFromCloud()">クラウド読込</button>
   </div>
 
   <table>
@@ -176,12 +174,16 @@ function renderTable() {
       outputDiv.textContent = text;
       copyText(text);
 
-      // 追加: その時間までのデータをクラウド保存
+      // その時間までのデータをクラウド保存
       const today = dateInput.value;
       const partialData = data.slice(0, i + 1).map(d => ({ in: d.in, out: d.out }));
       db.ref('entrance/' + today + '/partial_' + i).set(partialData)
         .then(() => console.log('クラウドに部分データを保存しました'))
         .catch(e => console.error('部分保存失敗: ' + e));
+      // その日全体も保存
+      db.ref('entrance/' + today).set(data)
+        .then(() => console.log('クラウドに全体データも保存しました'))
+        .catch(e => console.error('全体保存失敗: ' + e));
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
     tbody.appendChild(row);
@@ -218,27 +220,6 @@ function resetData() {
 setDefaultDate();
 renderTable();
 initSlotSelects();
-
-function saveToCloud() {
-  const today = dateInput.value;
-  db.ref('entrance/' + today).set(data)
-    .then(() => alert('クラウドに保存しました！'))
-    .catch(e => alert('保存失敗: ' + e));
-}
-
-function loadFromCloud() {
-  const today = dateInput.value;
-  db.ref('entrance/' + today).get().then(snapshot => {
-    if (snapshot.exists()) {
-      data = snapshot.val();
-      saveData();
-      renderTable();
-      alert('クラウドから読み込みました！');
-    } else {
-      alert('データがありません');
-    }
-  });
-}
 
 // IN合計グラフ表示（期間・時間帯指定対応）
 function showInTotalHistory() {
