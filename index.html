@@ -89,6 +89,12 @@
   <div class="graph-controls">
     <label>開始日: <input type="date" id="graph-start"></label>
     <label>終了日: <input type="date" id="graph-end"></label>
+    <label>開始時間帯:
+      <select id="slot-start"></select>
+    </label>
+    <label>終了時間帯:
+      <select id="slot-end"></select>
+    </label>
     <button onclick="showInTotalHistory()">グラフ表示</button>
   </div>
   <canvas id="inTotalChart" width="400" height="200"></canvas>
@@ -100,6 +106,27 @@ let data = JSON.parse(localStorage.getItem('entranceData')) || timeSlots.map(() 
 const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
 const dateInput = document.getElementById('date-input');
+
+// 時間帯セレクトボックス初期化
+function initSlotSelects() {
+  const slotStart = document.getElementById('slot-start');
+  const slotEnd = document.getElementById('slot-end');
+  slotStart.innerHTML = '';
+  slotEnd.innerHTML = '';
+  timeSlots.forEach((slot, i) => {
+    const opt1 = document.createElement('option');
+    opt1.value = i;
+    opt1.textContent = slot;
+    slotStart.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = i;
+    opt2.textContent = slot;
+    slotEnd.appendChild(opt2);
+  });
+  slotStart.selectedIndex = 0;
+  slotEnd.selectedIndex = timeSlots.length - 1;
+}
 
 function setDefaultDate() {
   const today = new Date();
@@ -190,6 +217,7 @@ function resetData() {
 
 setDefaultDate();
 renderTable();
+initSlotSelects();
 
 function saveToCloud() {
   const today = dateInput.value;
@@ -212,7 +240,7 @@ function loadFromCloud() {
   });
 }
 
-// IN合計グラフ表示（期間指定対応）
+// IN合計グラフ表示（期間・時間帯指定対応）
 function showInTotalHistory() {
   db.ref('entrance').get().then(snapshot => {
     if (!snapshot.exists()) {
@@ -222,13 +250,21 @@ function showInTotalHistory() {
     const allData = snapshot.val();
     let labels = [];
     let inTotals = [];
+    const slotStartIdx = Number(document.getElementById('slot-start').value);
+    const slotEndIdx = Number(document.getElementById('slot-end').value);
+
     Object.keys(allData).sort().forEach(date => {
       const dayData = allData[date];
-      const inTotal = Array.isArray(dayData)
-        ? dayData.reduce((sum, d) => sum + (Number(d.in) || 0), 0)
-        : 0;
-      labels.push(date);
-      inTotals.push(inTotal);
+      if (Array.isArray(dayData)) {
+        // 指定時間帯の合計
+        const startIdx = Math.min(slotStartIdx, slotEndIdx);
+        const endIdx = Math.max(slotStartIdx, slotEndIdx);
+        const inTotal = dayData
+          .slice(startIdx, endIdx + 1)
+          .reduce((sum, d) => sum + (Number(d.in) || 0), 0);
+        labels.push(date);
+        inTotals.push(inTotal);
+      }
     });
 
     // 期間指定
