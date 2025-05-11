@@ -53,7 +53,7 @@
   </div>
 
   <div class="date-container">
-    日付：<input type="date" id="date-input">
+    営業日：<input type="date" id="date-input">
   </div>
 
   <div class="table-header">
@@ -82,12 +82,24 @@ const tbody = document.getElementById('table-body');
 const outputDiv = document.getElementById('output');
 const dateInput = document.getElementById('date-input');
 
+// 営業日を取得（22:00～翌4:30を1営業日とする）
+function getEigyoDate(dateObj = new Date()) {
+  // 4:30までを前日扱い
+  const hour = dateObj.getHours();
+  const min = dateObj.getMinutes();
+  if (hour < 5 || (hour === 4 && min <= 30)) {
+    // 前日
+    dateObj.setDate(dateObj.getDate() - 1);
+  }
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function setDefaultDate() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  dateInput.value = `${yyyy}-${mm}-${dd}`;
+  // デフォルトで営業日をセット
+  dateInput.value = getEigyoDate();
 }
 
 function renderTable() {
@@ -125,19 +137,20 @@ function renderTable() {
       const outSingle = String(data[i].out || 0).padStart(2, ' ');
       const inTotalStr = String(inTotal).padStart(3, ' ');
       const outTotalStr = String(outTotal).padStart(3, ' ');
-      const formattedDate = dateInput.value.replace(/-/g, '/');
+      const now = new Date();
+      const eigyoDate = getEigyoDate(now); // 送信時の営業日
+      const formattedDate = eigyoDate.replace(/-/g, '/');
       const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
       outputDiv.textContent = text;
       copyText(text);
 
-      // その時間までのデータをクラウド保存
-      const today = dateInput.value;
+      // その時間までのデータをクラウド保存（営業日で保存）
       const partialData = data.slice(0, i + 1).map(d => ({ in: d.in, out: d.out }));
-      db.ref('entrance/' + today + '/partial_' + i).set(partialData)
+      db.ref('entrance/' + eigyoDate + '/partial_' + i).set(partialData)
         .then(() => console.log('クラウドに部分データを保存しました'))
         .catch(e => console.error('部分保存失敗: ' + e));
-      // その日全体も保存
-      db.ref('entrance/' + today).set(data)
+      // その営業日全体も保存
+      db.ref('entrance/' + eigyoDate).set(data)
         .then(() => console.log('クラウドに全体データも保存しました'))
         .catch(e => console.error('全体保存失敗: ' + e));
     };
@@ -163,7 +176,7 @@ function saveData() {
 }
 
 function resetData() {
-  if (confirm('新しい日時のデータを入力しますか？')) {
+  if (confirm('新しい営業日のデータを入力しますか？')) {
     localStorage.removeItem('entranceData');
     data = timeSlots.map(() => ({in: '', out: ''}));
     setDefaultDate();
