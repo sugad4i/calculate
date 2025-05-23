@@ -44,12 +44,12 @@
 </head>
 <body>
 
-<header>エントランス集計ツール ver1.3.0</header>
+<header>エントランス集計ツール ver1.3.2</header>
 
 <main>
   <div class="page-title">
-    <div class="title-left">エントランス滞在率計算 ver1.3.0</div>
-    <div class="title-right">更新 2025/5/7</div>
+    <div class="title-left">エントランス滞在率計算 ver1.3.2</div>
+    <div class="title-right">更新 2025/5/23</div>
   </div>
 
   <div class="date-container">
@@ -130,17 +130,27 @@ function renderTable() {
     const tdStay = document.createElement('td'); tdStay.textContent = stay; tdStay.classList.add('fixed'); row.appendChild(tdStay);
     const tdStayRate = document.createElement('td'); tdStayRate.textContent = stayRate + '%'; tdStayRate.classList.add('fixed'); row.appendChild(tdStayRate);
 
+// ...existing code...
     const tdButton = document.createElement('td');
     const button = document.createElement('button'); button.textContent = '出力';
     button.onclick = () => {
+      // その時点までの合計を再計算
+      let inTotalLocal = 0, outTotalLocal = 0;
+      for (let j = 0; j <= i; j++) {
+        inTotalLocal += Number(data[j].in) || 0;
+        outTotalLocal += Number(data[j].out) || 0;
+      }
+      const stayLocal = inTotalLocal - outTotalLocal;
+      const stayRateLocal = inTotalLocal > 0 ? Math.round((stayLocal / inTotalLocal) * 100) : 0;
+
       const inSingle = String(data[i].in || 0).padStart(2, ' ');
       const outSingle = String(data[i].out || 0).padStart(2, ' ');
-      const inTotalStr = String(inTotal).padStart(3, ' ');
-      const outTotalStr = String(outTotal).padStart(3, ' ');
+      const inTotalStr = String(inTotalLocal).padStart(3, ' ');
+      const outTotalStr = String(outTotalLocal).padStart(3, ' ');
       const now = new Date();
       const eigyoDate = getEigyoDate(now); // 送信時の営業日
       const formattedDate = eigyoDate.replace(/-/g, '/');
-      const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRate}%`;
+      const text = `${formattedDate}\n${slot}\nin  ${inSingle}人 計${inTotalStr}人\nout ${outSingle}人 計${outTotalStr}人\n滞在率${stayRateLocal}%`;
       outputDiv.textContent = text;
       copyText(text);
 
@@ -155,6 +165,7 @@ function renderTable() {
         .catch(e => console.error('全体保存失敗: ' + e));
     };
     tdButton.appendChild(button); row.appendChild(tdButton);
+
     tbody.appendChild(row);
   });
 }
